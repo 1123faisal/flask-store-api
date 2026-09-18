@@ -9,6 +9,7 @@ COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --locked --no-install-project
 
 COPY src ./src
+COPY migrations ./migrations
 RUN uv sync --locked
 
 COPY docker-entrypoint.sh ./
