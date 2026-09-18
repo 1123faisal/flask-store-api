@@ -1,12 +1,16 @@
 import os
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_smorest import Api
+from sqlalchemy.exc import SQLAlchemyError
 
 from py_rest_api.block_list import BLOCKLIST
 from py_rest_api.db import db
+
+load_dotenv()
 
 from py_rest_api.resources.item import blp as item_blp
 from py_rest_api.resources.store import blp as store_blp
@@ -31,8 +35,11 @@ def create_app(db_url=None):
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    db.init_app(app)
-    migrate = Migrate(app, db)
+    try:
+        db.init_app(app)
+        migrate = Migrate(app, db)
+    except SQLAlchemyError as e:
+        print(e)
 
     with app.app_context():
         db.create_all()

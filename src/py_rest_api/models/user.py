@@ -8,4 +8,4 @@ class UserModel(db.Model):
 
     id = Column(Integer, primary_key=True)
     username = Column(String(80), unique=True, nullable=False)
-    password = Column(String(80), nullable=False)
+    password = Column(String(255), nullable=False)

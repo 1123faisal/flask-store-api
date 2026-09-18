@@ -34,7 +34,7 @@ class UserRegister(MethodView):
         except IntegrityError:
             abort(409, message="Same username already exists")
         except SQLAlchemyError as e:
-            abort(500, message="An error occurred, while creating user")
+            abort(500, message=f"An error occurred, while creating user {e}")
 
         return {"message": "User created Successfully"}, 201
 
