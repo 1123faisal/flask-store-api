@@ -11,4 +11,7 @@ RUN uv sync --locked --no-install-project
 COPY src ./src
 RUN uv sync --locked
 
-CMD ["sh", "-c", "exec uv run --no-dev gunicorn --bind 0.0.0.0:${PORT:-5000} --access-logfile - --error-logfile - 'py_rest_api:create_app()'"]
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
+CMD ["/bin/bash", "docker-entrypoint.sh"]
