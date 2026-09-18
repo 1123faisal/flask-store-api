@@ -1,4 +1,3 @@
-from flask import abort
 from flask.views import MethodView
 from flask_jwt_extended import (
     create_access_token,
@@ -7,7 +6,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
