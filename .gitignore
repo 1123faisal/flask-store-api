@@ -1,0 +1,5 @@
+# uv
+.venv/
+uv.lock
+.env
+EOF
