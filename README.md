@@ -51,7 +51,8 @@ docker build -t py-rest-api .
 docker run --rm -p 5000:5000 py-rest-api
 ```
 
-The container listens on port `5000` and starts Flask on `0.0.0.0`.
+The container runs Gunicorn and listens on `0.0.0.0`. It uses the `PORT`
+environment variable provided by Render, or falls back to port `5000` locally.
 
 ## Database migrations
 

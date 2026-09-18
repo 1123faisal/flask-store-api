@@ -11,4 +11,4 @@ RUN uv sync --locked --no-install-project
 COPY src ./src
 RUN uv sync --locked
 
-CMD ["uv", "run", "--no-dev", "flask", "--app", "py_rest_api", "run", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["sh", "-c", "exec uv run --no-dev gunicorn --bind 0.0.0.0:${PORT:-5000} --access-logfile - --error-logfile - 'py_rest_api:create_app()'"]
