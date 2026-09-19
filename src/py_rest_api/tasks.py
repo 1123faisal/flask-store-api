@@ -1,11 +1,14 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 import jinja2
 import requests
 
 load_dotenv()
 
-template_loader = jinja2.FileSystemLoader("templates")
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
+template_loader = jinja2.FileSystemLoader(TEMPLATES_DIR)
 template_env = jinja2.Environment(loader=template_loader)
 
 

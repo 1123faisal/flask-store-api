@@ -29,7 +29,7 @@ class Item(MethodView):
     @blp.arguments(ItemUpdateSchema)
     @blp.response(200, ItemSchema)
     def put(self, item_data, item_id):
-        item = ItemModel.query.get(item_id)
+        item = db.session.get(ItemModel, item_id)
 
         if item:
             item.name = item_data["name"]

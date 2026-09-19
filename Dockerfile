@@ -10,6 +10,7 @@ RUN uv sync --locked --no-install-project
 
 COPY src ./src
 COPY migrations ./migrations
+COPY templates ./templates
 RUN uv sync --locked
 
 COPY docker-entrypoint.sh ./

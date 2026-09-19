@@ -7,9 +7,8 @@ from flask_migrate import Migrate
 from flask_smorest import Api
 import redis
 from rq import Queue
-from sqlalchemy.exc import SQLAlchemyError
 
-from py_rest_api.block_list import BLOCKLIST
+from py_rest_api.block_list import is_token_blocklisted
 from py_rest_api.db import db
 
 load_dotenv()
@@ -20,11 +19,21 @@ from py_rest_api.resources.tag import blp as tag_blp
 from py_rest_api.resources.user import blp as user_blp
 
 
+def _use_psycopg3(database_uri):
+    # Render (and most managed Postgres providers) hand out plain "postgresql://"
+    # URLs, which SQLAlchemy resolves to the legacy psycopg2 driver by default.
+    # Force the modern psycopg3 dialect instead.
+    if database_uri.startswith("postgresql://"):
+        return database_uri.replace("postgresql://", "postgresql+psycopg://", 1)
+    return database_uri
+
+
 def create_app(db_url=None):
 
     app = Flask(__name__)
     conn = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
 
+    app.extensions["redis"] = conn
     app.extensions["email_queue"] = Queue("emails", conn)
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["API_TITLE"] = "Stores REST API"
@@ -35,19 +44,13 @@ def create_app(db_url=None):
     app.config["OPENAPI_SWAGGER_UI_URL"] = (
         "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     )
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv(
-        "DATABASE_URI", "sqlite:///data.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = _use_psycopg3(
+        db_url or os.getenv("DATABASE_URI", "sqlite:///data.db")
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    try:
-        db.init_app(app)
-        Migrate(app, db)
-    except SQLAlchemyError as e:
-        print(e)
-
-    with app.app_context():
-        db.create_all()
+    db.init_app(app)
+    Migrate(app, db)
 
     api = Api(app)
     api.spec.components.security_scheme(
@@ -55,12 +58,12 @@ def create_app(db_url=None):
         {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
     )
 
-    app.config["JWT_SECRET_KEY"] = "58216975469707516585755993795747836917"
+    app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
     jwt = JWTManager(app)
 
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blocklist(jwt_header, jwt_payload):
-        return jwt_payload["jti"] in BLOCKLIST
+        return is_token_blocklisted(conn, jwt_payload["jti"])
 
     @jwt.revoked_token_loader
     def revoked_token_callback(jwt_header, jwt_payload):

@@ -12,7 +12,7 @@ from sqlalchemy import or_
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
-from py_rest_api.block_list import BLOCKLIST
+from py_rest_api.block_list import add_token_to_blocklist
 from py_rest_api.db import db
 from py_rest_api.tasks import send_user_registration_email
 from py_rest_api.models.user import UserModel
@@ -79,8 +79,10 @@ class UserLogout(MethodView):
     @jwt_required()
     @blp.doc(security=[{"bearerAuth": []}])
     def post(self):
-        jti = get_jwt().get("jti")
-        BLOCKLIST.add(jti)
+        jwt_payload = get_jwt()
+        add_token_to_blocklist(
+            current_app.extensions["redis"], jwt_payload["jti"], jwt_payload["exp"]
+        )
         return {"message": "Successfully Logout."}
 
 

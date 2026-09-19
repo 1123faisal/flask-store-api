@@ -1,4 +1,5 @@
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
 from py_rest_api.db import db
 
@@ -6,6 +7,6 @@ from py_rest_api.db import db
 class ItemTags(db.Model):
     __tablename__ = "items_tags"
 
-    id = Column(Integer, primary_key=True)
-    item_id = Column(Integer, ForeignKey("items.id"))
-    tag_id = Column(Integer, ForeignKey("tags.id"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    item_id: Mapped[int | None] = mapped_column(ForeignKey("items.id"))
+    tag_id: Mapped[int | None] = mapped_column(ForeignKey("tags.id"))

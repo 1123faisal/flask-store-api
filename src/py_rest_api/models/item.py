@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Float, ForeignKey, Integer, String
-from sqlalchemy.orm import Relationship
+from sqlalchemy import Float, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from py_rest_api.db import db
 
@@ -7,11 +7,13 @@ from py_rest_api.db import db
 class ItemModel(db.Model):
     __tablename__ = "items"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(80), unique=True, nullable=False)
-    price = Column(Float(precision=2), unique=False, nullable=False)
-    desc = Column(String)
-    store_id = Column(Integer, ForeignKey("stores.id"), unique=False, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), unique=True)
+    price: Mapped[float] = mapped_column(Float(precision=2))
+    desc: Mapped[str | None] = mapped_column(String)
+    store_id: Mapped[int] = mapped_column(ForeignKey("stores.id"))
 
-    store = Relationship("StoreModel", back_populates="items")
-    tags = Relationship("TagModel", back_populates="items", secondary="items_tags")
+    store: Mapped["StoreModel"] = relationship(back_populates="items")
+    tags: Mapped[list["TagModel"]] = relationship(
+        back_populates="items", secondary="items_tags"
+    )

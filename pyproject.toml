@@ -16,9 +16,10 @@ dependencies = [
     "flask-jwt-extended>=4.7.4",
     "flask-migrate>=4.1.0",
     "gunicorn>=26.2.0",
-    "psycopg2-binary>=2.9.13",
+    "psycopg[binary]>=3.2.0",
     "requests>=2.34.2",
     "rq>=2.12.0",
+    "jinja2>=3.1.6",
 ]
 
 [project.scripts]
