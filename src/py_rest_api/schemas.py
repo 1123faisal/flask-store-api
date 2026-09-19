@@ -23,6 +23,10 @@ class PlainUserSchema(Schema):
     password = fields.Str(required=True, load_only=True)
 
 
+class UserRegisterSchema(PlainUserSchema):
+    email = fields.Str(required=True)
+
+
 class StoreUpdateSchema(Schema):
     name = fields.Str()
 

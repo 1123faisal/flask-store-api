@@ -7,34 +7,49 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from flask_smorest import Blueprint, abort
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
 from py_rest_api.block_list import BLOCKLIST
 from py_rest_api.db import db
+from py_rest_api.mail import send_mail
 from py_rest_api.models.user import UserModel
-from py_rest_api.schemas import PlainUserSchema
+from py_rest_api.schemas import PlainUserSchema, UserRegisterSchema
 
 blp = Blueprint("user", __name__, description="Operations on User")
 
 
 @blp.route("/register")
 class UserRegister(MethodView):
-    @blp.arguments(PlainUserSchema)
+    @blp.arguments(UserRegisterSchema)
     def post(self, user_data):
+        if UserModel.query.filter(
+            or_(
+                UserModel.username == user_data["username"],
+                UserModel.email == user_data["email"],
+            )
+        ).first():
+            abort(409, message="A user with thar username/email already exists.")
+
         user = UserModel(
             username=user_data["username"],
+            email=user_data["email"],
             password=generate_password_hash(user_data["password"]),
         )
 
+        db.session.add(user)
+        db.session.commit()
+
         try:
-            db.session.add(user)
-            db.session.commit()
-        except IntegrityError:
-            abort(409, message="Same username already exists")
-        except SQLAlchemyError as e:
-            abort(500, message=f"An error occurred, while creating user {e}")
+            send_mail(
+                to=user.email,
+                subject="Successfully Signup.",
+                body=f"Hi {user.username} You're Successfully Signup.",
+            )
+        except Exception as e:
+            print(e)
 
         return {"message": "User created Successfully"}, 201
 
