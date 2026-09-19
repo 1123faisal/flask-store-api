@@ -18,10 +18,12 @@ dependencies = [
     "gunicorn>=26.2.0",
     "psycopg2-binary>=2.9.13",
     "requests>=2.34.2",
+    "rq>=2.12.0",
 ]
 
 [project.scripts]
 py-rest-api = "py_rest_api:main"
+py-rest-api-worker = "py_rest_api.worker:main"
 
 [build-system]
 requires = ["uv_build>=0.12.13,<0.13.0"]

@@ -5,6 +5,8 @@ from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_smorest import Api
+import redis
+from rq import Queue
 from sqlalchemy.exc import SQLAlchemyError
 
 from py_rest_api.block_list import BLOCKLIST
@@ -21,6 +23,9 @@ from py_rest_api.resources.user import blp as user_blp
 def create_app(db_url=None):
 
     app = Flask(__name__)
+    conn = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
+
+    app.extensions["email_queue"] = Queue("emails", conn)
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["API_TITLE"] = "Stores REST API"
     app.config["API_VERSION"] = "v1"
@@ -37,7 +42,7 @@ def create_app(db_url=None):
 
     try:
         db.init_app(app)
-        migrate = Migrate(app, db)
+        Migrate(app, db)
     except SQLAlchemyError as e:
         print(e)
 

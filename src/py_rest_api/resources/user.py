@@ -1,3 +1,4 @@
+from flask import current_app
 from flask.views import MethodView
 from flask_jwt_extended import (
     create_access_token,
@@ -8,13 +9,12 @@ from flask_jwt_extended import (
 )
 from flask_smorest import Blueprint, abort
 from sqlalchemy import or_
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
 from py_rest_api.block_list import BLOCKLIST
 from py_rest_api.db import db
-from py_rest_api.mail import send_mail
+from py_rest_api.tasks import send_user_registration_email
 from py_rest_api.models.user import UserModel
 from py_rest_api.schemas import PlainUserSchema, UserRegisterSchema
 
@@ -42,14 +42,9 @@ class UserRegister(MethodView):
         db.session.add(user)
         db.session.commit()
 
-        try:
-            send_mail(
-                to=user.email,
-                subject="Successfully Signup.",
-                body=f"Hi {user.username} You're Successfully Signup.",
-            )
-        except Exception as e:
-            print(e)
+        current_app.extensions["email_queue"].enqueue(
+            send_user_registration_email, user.email, user.username
+        )
 
         return {"message": "User created Successfully"}, 201
 
